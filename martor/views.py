@@ -6,6 +6,7 @@ from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 
 from .api import imgur_uploader
 from .settings import MARTOR_MARKDOWNIFY_FUNCTION
@@ -65,9 +66,11 @@ def markdown_search_user(request):
             and username != '' \
             and ' ' not in username:
 
-        queries = {'%s__iexact' % User.USERNAME_FIELD: username,
-                   '%s__icontains' % User.USERNAME_FIELD: username}
-        users = User.objects.filter(**queries).filter(is_active=True)
+        queries = {
+            '%s__icontains' % User.USERNAME_FIELD: username,
+            is_active=True
+        }
+        users = User.objects.filter(**queries)
         if users.exists():
             response_data.update({'status': 200,
                                   'data': [{'username': u.username} for u in users]})
